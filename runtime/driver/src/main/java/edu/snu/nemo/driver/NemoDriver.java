@@ -200,23 +200,17 @@ public final class NemoDriver {
         .set(ContextConfiguration.ON_CONTEXT_STOP, NemoContext.ContextStopHandler.class)
         .build();
 
-    final Configuration ncsConfiguration =  getExecutorNcsConfiguration();
     final Configuration messageConfiguration = getExecutorMessageConfiguration(executorId);
 
-    return Configurations.merge(executorConfiguration, contextConfiguration, ncsConfiguration, messageConfiguration);
-  }
-
-  private Configuration getExecutorNcsConfiguration() {
-    return Tang.Factory.getTang().newConfigurationBuilder()
-        .bindNamedParameter(NameResolverNameServerPort.class, Integer.toString(nameServer.getPort()))
-        .bindNamedParameter(NameResolverNameServerAddr.class, localAddressProvider.getLocalAddress())
-        .bindImplementation(IdentifierFactory.class, StringIdentifierFactory.class)
-        .build();
+    return Configurations.merge(executorConfiguration, contextConfiguration, messageConfiguration);
   }
 
   private Configuration getExecutorMessageConfiguration(final String executorId) {
     return Tang.Factory.getTang().newConfigurationBuilder()
         .bindNamedParameter(MessageParameters.SenderId.class, executorId)
+        .bindNamedParameter(NameResolverNameServerPort.class, Integer.toString(nameServer.getPort()))
+        .bindNamedParameter(NameResolverNameServerAddr.class, localAddressProvider.getLocalAddress())
+        .bindImplementation(IdentifierFactory.class, StringIdentifierFactory.class)
         .build();
   }
 }

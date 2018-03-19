@@ -65,6 +65,7 @@ public final class JobLauncher {
 
   /**
    * Main JobLauncher method.
+   *
    * @param args arguments.
    * @throws Exception exception on the way.
    */
@@ -72,13 +73,12 @@ public final class JobLauncher {
     // Get Job and Driver Confs
     final Configuration jobConf = getJobConf(args);
     final Configuration driverConf = getDriverConf(jobConf);
-    final Configuration driverNcsConf = getDriverNcsConf();
     final Configuration driverMessageConfg = getDriverMessageConf();
     final Configuration executorResourceConfig = getExecutorResourceConf(jobConf);
     final Configuration clientConf = getClientConf();
 
     // Merge Job and Driver Confs
-    jobAndDriverConf = Configurations.merge(jobConf, driverConf, driverNcsConf, driverMessageConfg,
+    jobAndDriverConf = Configurations.merge(jobConf, driverConf, driverMessageConfg,
         executorResourceConfig);
 
     // Get DeployMode Conf
@@ -90,6 +90,7 @@ public final class JobLauncher {
 
   /**
    * Launch application using the application DAG.
+   *
    * @param dag the application DAG.
    */
   // When modifying the signature of this method, see CompilerTestUtil#compileDAG and make corresponding changes
@@ -103,7 +104,7 @@ public final class JobLauncher {
           .bindNamedParameter(JobConf.SerializedDAG.class, serializedDAG)
           .build();
       // Launch and wait indefinitely for the job to finish
-      final LauncherStatus launcherStatus =  DriverLauncher.getLauncher(deployModeConf)
+      final LauncherStatus launcherStatus = DriverLauncher.getLauncher(deployModeConf)
           .run(Configurations.merge(jobAndDriverConf, dagConf));
       final Optional<Throwable> possibleError = launcherStatus.getError();
       if (possibleError.isPresent()) {
@@ -118,6 +119,7 @@ public final class JobLauncher {
 
   /**
    * Run user-provided main method.
+   *
    * @param jobConf the job configuration
    * @throws Exception on any exceptions on the way
    */
@@ -147,31 +149,24 @@ public final class JobLauncher {
   }
 
   /**
-   * Get driver ncs configuration.
-   * @return driver ncs configuration.
+   * Get driver message configuration.
+   *
+   * @return driver message configuration.
    * @throws InjectionException exception while injection.
    */
-  private static Configuration getDriverNcsConf() throws InjectionException {
-    return Configurations.merge(NameServerConfiguration.CONF.build(),
+  private static Configuration getDriverMessageConf() throws InjectionException {
+    return Configurations.merge(
+        NameServerConfiguration.CONF.build(),
         LocalNameResolverConfiguration.CONF.build(),
         TANG.newConfigurationBuilder()
+            .bindNamedParameter(MessageParameters.SenderId.class, MessageEnvironment.MASTER_COMMUNICATION_ID)
             .bindImplementation(IdentifierFactory.class, StringIdentifierFactory.class)
             .build());
   }
 
   /**
-   * Get driver message configuration.
-   * @return driver message configuration.
-   * @throws InjectionException exception while injection.
-   */
-  private static Configuration getDriverMessageConf() throws InjectionException {
-    return TANG.newConfigurationBuilder()
-        .bindNamedParameter(MessageParameters.SenderId.class, MessageEnvironment.MASTER_COMMUNICATION_ID)
-        .build();
-  }
-
-  /**
    * Get driver configuration.
+   *
    * @param jobConf job Configuration to get job id and driver memory.
    * @return driver configuration.
    * @throws InjectionException exception while injection.
@@ -195,9 +190,10 @@ public final class JobLauncher {
 
   /**
    * Get job configuration.
+   *
    * @param args arguments to be processed as command line.
    * @return job configuration.
-   * @throws IOException exception while processing command line.
+   * @throws IOException        exception while processing command line.
    * @throws InjectionException exception while injection.
    */
   public static Configuration getJobConf(final String[] args) throws IOException, InjectionException {
@@ -228,6 +224,7 @@ public final class JobLauncher {
 
   /**
    * Get deploy mode configuration.
+   *
    * @param jobConf job configuration to get deploy mode.
    * @return deploy mode configuration.
    * @throws InjectionException exception while injection.
@@ -251,6 +248,7 @@ public final class JobLauncher {
 
   /**
    * Get executor resource configuration.
+   *
    * @param jobConf job configuration to get executor json path.
    * @return executor resource configuration.
    * @throws InjectionException exception while injection.
